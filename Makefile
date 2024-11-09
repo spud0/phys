@@ -9,14 +9,18 @@ CFLAGS := $(CFLAGS) $(WARN)
 SOURCES := $(wildcard *.cc)
 OBJS :=  $(SOURCES:.cc=.o)
 
+# A little misleading. This should run make [debug, build, tests and clean] ?
 everything : 
-	$(CC)$(CFLAGS) main.cc -o main 
+	$(CC)$(CFLAGS) main.cc -o main $(SDL)
 
+build :
+	$(CC)$(CFLAGS) main.cc -o main $(SDL)
+ 
 debug : 
 	$(CC)$(CFLAGS) main.cc -g -o main $(SDL)
 
-.PHONY: test
-test :
+.PHONY: tests
+tests :
 	$(CC) $(CFLAGS) tests/test.cc -o test
 
 .PHONY: clean
