@@ -1,9 +1,11 @@
 #pragma once 
 #include <array>
 #include <iostream>
+#include <type_traits> // For the near future.
 
 namespace math {
 
+	// Not sure if this is needed. 
 	template <std::size_t dims, class coord_type> 
 	class point {
 
