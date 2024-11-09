@@ -15,6 +15,11 @@ everything :
 debug : 
 	$(CC)$(CFLAGS) main.cc -g -o main $(SDL)
 
+.PHONY: test
+test :
+	$(CC) $(CFLAGS) tests/test.cc -o test
+
 .PHONY: clean
 clean :
 	rm -f $(TARGET)
+	rm -f test
