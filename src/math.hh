@@ -22,12 +22,12 @@ namespace math {
 		
 		vector (coord_type x, coord_type y) : x_(x), y_(y) {};
 
-		coord_type get_x () {
+		coord_type get_x () const {
 			return x_;
 		}
 	
 
-		coord_type get_y () {
+		coord_type get_y () const {
 			return y_;
 		}
 
@@ -49,11 +49,10 @@ namespace math {
 		}
 
 
-		friend std::ostream & operator << (const math::vector<coord_type> & v, std::ostream & buffer) {
+		friend std::ostream & operator << (std::ostream & buffer, const math::vector<coord_type> & v )  {
 			
 			buffer << "[v]: (";
 			buffer << v.get_x() << ", " << v.get_y() << ")";
-			buffer << std::endl;
 			return buffer;	
 		
 		}
