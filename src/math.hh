@@ -35,8 +35,8 @@ namespace math {
 			return (x_ * x_) + (y_ * y_); 
 		}
 
-
-		friend math::vector<coord_type> operator * (int scalar, const math::vector<coord_type> & v) {
+		
+		friend math::vector<coord_type> operator * (coord_type scalar, const math::vector<coord_type> & v) {
 			return math::vector(v.get_x() * scalar, v.get_y() * scalar); 
 		}
 
