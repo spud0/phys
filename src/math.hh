@@ -1,11 +1,54 @@
 #pragma once 
 #include <array>
 #include <iostream>
+#include <limits>
 #include <type_traits> // For the near future.
 
 namespace math {
+	
+	static constexpr float inf = std::numeric_limits<float>::infinity();
 
-	// Not sure if this is needed. 
+	struct point {
+		float x;
+		float y;
+
+		float dist () { 
+			return (x * x) + (y * y); 
+		}
+
+	};
+
+	struct box {
+		point bottom_left {inf, inf};
+		point top_right {-inf, -inf};
+
+		point middle () {
+			return point { 
+				(bottom_left.x + top_right.x) / 2, 
+				(bottom_left.y + top_right.y) / 2 };
+		}
+
+		point closest_to_origin () {
+			return (bottom_left.dist() < top_right.dist()) ? bottom_left : top_right; 
+		}
+
+		float area () {
+			return (top_right.x - bottom_left.x) * (top_right.y - bottom_left.y);
+		}	
+
+		box& expand (point const& pt) {
+
+		}
+
+		box& expand (box const& bx) {
+
+		}
+	
+	};
+
+
+	# if 0
+	// Not sure if this is needed, massive refactor incoming.
 	template <std::size_t dims, class coord_type> 
 	class point {
 
@@ -13,8 +56,7 @@ namespace math {
 		std::array<coord_type, dims> coords_;
 
 	};
-
-
+	
 	template <class coord_type> 
 	class vector {
 
@@ -61,4 +103,6 @@ namespace math {
 	 	coord_type x_;	
 	 	coord_type y_;	
 	};
+
+	#endif 
 }
