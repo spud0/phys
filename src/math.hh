@@ -16,6 +16,10 @@ namespace math {
 			return (x * x) + (y * y); 
 		}
 
+		point operator + (point const& pt) {
+			return point {pt.x + this.x, pt.y + this.y};
+		}
+
 	};
 
 	struct box {
@@ -37,11 +41,19 @@ namespace math {
 		}	
 
 		box& expand (point const& pt) {
-
+			bottom_left.x  = std::min (bottom_left.x, pt.x);
+			bottom_left.y  = std::min (bottom_left.y, pt.y);
+			top_right.x  = std::max (top_right.x, pt.x);
+			top_right.y  = std::max (top_right.y, pt.y);
+			return *this;
 		}
 
 		box& expand (box const& bx) {
-
+			bottom_left.x  = std::min (bottom_left.x, bx.bottom_left.x);
+			bottom_left.y  = std::min (bottom_left.y, bx.bottom_left.y);
+			top_right.x  = std::max (top_right.x, bx.top_right.x);
+			top_right.y  = std::max (top_right.y, bx.top_right.y);
+			return *this;
 		}
 	
 	};
