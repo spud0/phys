@@ -2,10 +2,11 @@
 #include <SDL2/SDL.h>
 
 void f () {
-	SDL_Init( SDL_INIT_EVERYTHING );
-    SDL_SetHint( SDL_HINT_RENDER_SCALE_QUALITY, "1" );
+
+	SDL_Init (SDL_INIT_EVERYTHING);
+    SDL_SetHint (SDL_HINT_RENDER_SCALE_QUALITY, "1");
     SDL_Window* window = SDL_CreateWindow ( 
-		"Window", 
+		"window", 
 		SDL_WINDOWPOS_UNDEFINED, 
 		SDL_WINDOWPOS_UNDEFINED, 
 		640, 480, 
@@ -24,6 +25,7 @@ void f () {
     box.y = 50;
 		
 	float y_vel = 0;
+	float x_vel = 0;
 	float gravity = 9.81;
 	float time_delta = 0.1;
 	bool dragging = false;
@@ -46,7 +48,7 @@ void f () {
 			
 					dragging = true;
 					y_vel = 0;	
-
+					x_vel = 0;
 					mouse_off_x = x_mouse_pos - box.x;
 					mouse_off_y = y_mouse_pos - box.y;
 				}	
@@ -56,18 +58,37 @@ void f () {
 			} else if (ev.type == SDL_MOUSEMOTION && dragging) {
 				box.x = ev.motion.x - mouse_off_x;	
 				box.y = ev.motion.y - mouse_off_y;	
+				x_vel += 1;
 			}
+			
         }
 
 
 		if (!dragging) {
 			y_vel += gravity * time_delta;
 			box.y += static_cast<int>(y_vel);
+			box.x += x_vel;
 
 			if (box.y + box.h > 480) {
 				box.y = 480 - box.h;
-				y_vel = 0;
+				y_vel = -1 * y_vel * 0.3;
 			}
+
+			if (box.y - box.h < 0) {
+				box.x = 0;
+				y_vel = -1 * y_vel * 0.3;
+			}
+
+			if (box.x + box.w > 640) {
+				box.x = 640 - box.w;
+				x_vel = -1 * x_vel *0.3;	
+			}
+
+			if (box.x - box.w < 0) {
+				box.x = 0;
+				x_vel = -1 * x_vel * 0.3;	
+			}
+			
 		}
 
         SDL_SetRenderDrawColor( renderer, 0xFF, 0xFF, 0xFF, 0xFF );
@@ -79,11 +100,12 @@ void f () {
         SDL_RenderPresent(renderer);
 		SDL_Delay(50);
     }
-	return;
+
+	return ;
 }
 
 int main (void) {
-	std::cout << "hello, world" << std::endl;	
+	// std::cout << "hello, world" << std::endl;	
 	f();
 	return 0;
 }
