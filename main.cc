@@ -155,7 +155,9 @@ void f () {
 
 	std::pair<int, int> offsets {0, 0};
 	std::pair<int, int> previous {0, 0};
-	
+
+
+	// up next	
 	while (is_running) {
 		SDL_Event ev;
 		while (SDL_PollEvent(&ev)) {
