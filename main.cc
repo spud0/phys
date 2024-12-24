@@ -5,6 +5,9 @@
 
 #include "./src/math.hh"
 
+#define GRAVITY 9.81
+#define TIME_DELTA 0.1
+
 void init_render (SDL_Renderer** renderer) {
 
 	SDL_Init (SDL_INIT_EVERYTHING);
@@ -65,14 +68,70 @@ void handle_mouse_up (
 	return; 
 }
 
-void handle_motion
+void handle_mouse_motion ( 
+		 const SDL_Event& ev, 
+		 bool & is_dragging, 
+		 std::pair<int, int> offsets,
+		 std::pair<int, int> previous, 
+		 std::pair<SDL_Rect, std::pair<float, float>> & box
+		) {
+
+	if (is_dragging) {
+	
+		previous.first = box.first.x;
+		previous.second = box.first.y;
+
+		box.first.x = ev.motion.x - offsets.first;
+		box.first.y = ev.motion.y - offsets.second;
+
+	}		
+
+}
+
+
+void step_simulation (
+		std::pair<SDL_Rect, std::pair<float, float>> & box,
+		bool& is_dragging
+		) {
+
+	if (!is_dragging) {
+
+		box.second.second += GRAVITY * TIME_DELTA;
+		box.first.y += static_cast<int>(box.second.second);
+		box.first.x += static_cast<int>(box.second.first);
+
+		if (box.first.y + box.first.h > 480) {
+			box.first.y = 480 - box.first.h;
+			box.second.second = -1 * box.second.second * 0.3;
+			box.second.first *= 0.9;
+		}
+
+		if ( box.first.y < 0) {
+			box.first.y = 0;
+		 	box.second.second = -1 * box.second.second * 0.3;
+		}
+
+		if (box.first.x + box.first.w > 640) {
+			box.first.x = 640 - box.first.w;
+			box.second.first = -1 * box.second.first *0.3;	
+		}
+
+		if (box.first.x < 0) {
+			box.first.x = 0;
+			box.second.first = -1 * box.second.first * 0.3;	
+		}
+
+	}
+		
+	return;
+}
+
 
 void f () {
 
 	// Initialize the screen.
 	SDL_Renderer * view = nullptr;
 	init_render (&view);
-
 
 	SDL_Rect box = {.x = 30, .y = 50, .w = 30, .h = 30 };
 		
@@ -91,8 +150,6 @@ void f () {
 		});
 	}	
 	
-	float gravity = 9.81;
-	float time_delta = 0.1;
 	bool is_dragging = false;
 	bool is_running = true;
 
