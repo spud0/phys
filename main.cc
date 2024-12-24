@@ -23,29 +23,49 @@ void init_render (SDL_Renderer** renderer) {
 	return;
 }
 
-bool is_mouse_down (SDL_Rect & box, 
+void handle_mouse_down ( 
+				 int x_mouse, int y_mouse, 
+				 bool & is_dragging, 
+				 std::pair<int, int>& offsets,
+				 std::pair<int, int>& previous,
+				 std::pair< SDL_Rect, std::pair<float, float>> & box 
+				) {
+
+	if (x_mouse >= box.first.x && x_mouse <= box.first.x + box.first.w &&
+		y_mouse >= box.first.y && y_mouse <= box.first.y + box.first.h) {
+
+			is_dragging = true;
+			
+			box.second.first = box.second.second = 0.f;	
+
+			offsets.first  = x_mouse - box.first.x;
+			offsets.second = y_mouse - box.first.y;
+			previous.first = box.first.x;
+			previous.second = box.first.y;
+			return;
+		}
+
+	return ;
+}
+
+void handle_mouse_up ( 
 				 int x_mouse, int y_mouse, 
 				 bool & is_dragging, 
 				 std::pair<int, int> offsets,
-				 std::pair<int, int> previous	
+				 std::pair<int, int> previous, 
+				 std::pair<SDL_Rect, std::pair<float, float>> & box
 				) {
-
-	if (x_mouse >= box.x && x_mouse <= box.x + box.w &&
-		y_mouse >= box.y && y_mouse <= box.y + box.h) {
-
-			is_dragging = true;
 	
-			// x_vel = y_vel = 0; Come back to this.
+	if (is_dragging) {
+		box.second.first = (box.first.x - previous.first) * 0.6;
+		box.second.second = (box.first.y - previous.second) * 0.6;
+		is_dragging = false;
+	}
 
-			offsets.first  = x_mouse - box.x;
-			offsets.second = y_mouse - box.y;
-			previous.first = box.x;
-			previous.second = box.y;
-			return true;
-		}
-
-	return false;
+	return; 
 }
+
+void handle_motion
 
 void f () {
 
@@ -89,9 +109,11 @@ void f () {
 				int x_mouse = ev.button.x;
 				int y_mouse = ev.button.y;
 				
-				for (auto box: boxes) check_dragging (box.first, x_mouse, y_mouse, is_dragging, offsets, previous);
+				 is_mouse_down (box.first, x_mouse, y_mouse, is_dragging, offsets, previous);
 
 			} else if (ev.type == SDL_MOUSEBUTTONUP) {
+
+				is_mouse_up
 				if (is_dragging) {
 					// Horizontal velocity
 					x_vel = (box.x - prev_x) * 0.6;
