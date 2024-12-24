@@ -129,35 +129,7 @@ void step_simulation (
 
 void f () {
 
-	// Initialize the screen.
-	SDL_Renderer * view = nullptr;
-	init_render (&view);
-
-	SDL_Rect box = {.x = 30, .y = 50, .w = 30, .h = 30 };
-		
-	std::vector <std::pair <SDL_Rect, std::pair <float, float>>> boxes;
-	boxes.push_back(std::make_pair (box, std::make_pair(0, 0)));
-
-	for (int i = 0; i < 10; i++) {
-		boxes.push_back ({
-			SDL_Rect {
-				.x = 30 + i * 5,
-				.y = 50 + i * 5,
-				.w = 30, .h = 30
-			}, 
-
-			{0, 0}
-		});
-	}	
-	
-	bool is_dragging = false;
-	bool is_running = true;
-
-	std::pair<int, int> offsets {0, 0};
-	std::pair<int, int> previous {0, 0};
-
-
-	// up next	
+		// up next	
 	while (is_running) {
 		SDL_Event ev;
 		while (SDL_PollEvent(&ev)) {
@@ -218,22 +190,74 @@ void f () {
 
 		}
 
-        SDL_SetRenderDrawColor (view, 0xFF, 0xFF, 0xFF, 0xFF );
-        SDL_RenderClear (view);
-
-        SDL_SetRenderDrawColor (view, 0xFF, 0x00, 0x00, 0xFF );
-        SDL_RenderFillRect(view, &box );
-
-        SDL_RenderPresent (view);
-		SDL_Delay(25);
-
-    }
+            }
 
 	return ;
 }
 
+// The Physics Engine.
 int main (void) {
-	// std::cout << "hello, world" << std::endl;	
-	f();
+
+	// Initialize the screen.
+	SDL_Renderer * view = nullptr;
+	init_render (&view);
+
+	// Get the boxes ready for the screen.
+	SDL_Rect box = {.x = 30, .y = 50, .w = 30, .h = 30 };
+	std::vector <std::pair <SDL_Rect, std::pair <float, float>>> boxes;
+	boxes.push_back(std::make_pair (box, std::make_pair(0, 0)));
+
+	for (int i = 0; i < 10; i++) {
+		boxes.push_back ({
+			SDL_Rect {
+				.x = 30 + i * 5,
+				.y = 50 + i * 5,
+				.w = 30, .h = 30
+			}, 
+
+			{0, 0}
+		});
+	}	
+	
+	bool is_dragging = false;
+	bool is_running = true;
+
+	std::pair<int, int> offsets {0, 0};
+	std::pair<int, int> previous {0, 0};
+
+	// The main "game" loop.
+	while (is_running) {
+		SDL_Event ev;
+		while (SDL_PollEvent(&ev)) {
+			switch (ev.type) {
+				case SDL_QUIT:
+					is_running = false; break;
+		
+				case SDL_MOUSEBUTTONUP:
+				case SDL_MOUSEBUTTONDOWN:
+				case SDL_MOUSEMOTION:
+			}
+
+		}
+
+		// Update each box and render it. 
+		for (auto box: boxes)  {
+			step_simulation (box, is_dragging);
+		
+			SDL_SetRenderDrawColor (view, 0xFF, 0xFF, 0xFF, 0xFF );
+			SDL_RenderClear (view);
+
+			SDL_SetRenderDrawColor (view, 0xFF, 0x00, 0x00, 0xFF );
+			SDL_RenderFillRect(view, &box );
+
+			SDL_RenderPresent (view);
+			SDL_Delay(25);
+
+		}
+	
+
+	}
+		
+
 	return 0;
 }
