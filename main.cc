@@ -1,5 +1,6 @@
 #include <iostream> 
 #include <vector> 
+#include <utility> 
 #include <SDL2/SDL.h>
 
 #include "./src/math.hh"
@@ -22,6 +23,30 @@ void init_render (SDL_Renderer** renderer) {
 	return;
 }
 
+bool is_mouse_down (SDL_Rect & box, 
+				 int x_mouse, int y_mouse, 
+				 bool & is_dragging, 
+				 std::pair<int, int> offsets,
+				 std::pair<int, int> previous	
+				) {
+
+	if (x_mouse >= box.x && x_mouse <= box.x + box.w &&
+		y_mouse >= box.y && y_mouse <= box.y + box.h) {
+
+			is_dragging = true;
+	
+			// x_vel = y_vel = 0; Come back to this.
+
+			offsets.first  = x_mouse - box.x;
+			offsets.second = y_mouse - box.y;
+			previous.first = box.x;
+			previous.second = box.y;
+			return true;
+		}
+
+	return false;
+}
+
 void f () {
 
 	// Initialize the screen.
@@ -29,25 +54,31 @@ void f () {
 	init_render (&view);
 
 
-	SDL_Rect box;
-	box.w = 30;
-	box.h = 30;
-	box.x = 50;
-	box.y = 50;
+	SDL_Rect box = {.x = 30, .y = 50, .w = 30, .h = 30 };
+		
+	std::vector <std::pair <SDL_Rect, std::pair <float, float>>> boxes;
+	boxes.push_back(std::make_pair (box, std::make_pair(0, 0)));
 
-	float y_vel = 0;
-	float x_vel = 0;
+	for (int i = 0; i < 10; i++) {
+		boxes.push_back ({
+			SDL_Rect {
+				.x = 30 + i * 5,
+				.y = 50 + i * 5,
+				.w = 30, .h = 30
+			}, 
+
+			{0, 0}
+		});
+	}	
+	
 	float gravity = 9.81;
 	float time_delta = 0.1;
 	bool is_dragging = false;
 	bool is_running = true;
 
-	int mouse_off_x = 0;
-	int mouse_off_y = 0;
-
-	int prev_x = box.x;
-	int prev_y = box.y;
-
+	std::pair<int, int> offsets {0, 0};
+	std::pair<int, int> previous {0, 0};
+	
 	while (is_running) {
 		SDL_Event ev;
 		while (SDL_PollEvent(&ev)) {
@@ -55,20 +86,10 @@ void f () {
 				is_running = false;
 				break;
 			} else if (ev.type == SDL_MOUSEBUTTONDOWN) {
-				int x_mouse_pos = ev.button.x;
-				int y_mouse_pos = ev.button.y;
-
-				if (x_mouse_pos >= box.x && x_mouse_pos <= box.x + box.w &&
-					y_mouse_pos >= box.y && y_mouse_pos <= box.y + box.h) {
-
-					is_dragging = true;
-					x_vel = y_vel = 0;
-
-					mouse_off_x = x_mouse_pos - box.x;
-					mouse_off_y = y_mouse_pos - box.y;
-					prev_x = box.x;
-					prev_y = box.y;
-				}	
+				int x_mouse = ev.button.x;
+				int y_mouse = ev.button.y;
+				
+				for (auto box: boxes) check_dragging (box.first, x_mouse, y_mouse, is_dragging, offsets, previous);
 
 			} else if (ev.type == SDL_MOUSEBUTTONUP) {
 				if (is_dragging) {
