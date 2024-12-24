@@ -1,7 +1,10 @@
 #include <iostream> 
+#include <vector> 
 #include <SDL2/SDL.h>
 
-void f () {
+#include "./src/math.hh"
+
+void init_render (SDL_Renderer** renderer) {
 
 	SDL_Init (SDL_INIT_EVERYTHING);
 	SDL_SetHint (SDL_HINT_RENDER_SCALE_QUALITY, "1");
@@ -12,11 +15,19 @@ void f () {
 			640, 480, 
 			SDL_WINDOW_SHOWN );
 
-	SDL_Renderer* renderer = SDL_CreateRenderer( 
+	*renderer = SDL_CreateRenderer( 
 			window, -1,
 			SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC );
 
-	bool running = true;
+	return;
+}
+
+void f () {
+
+	// Initialize the screen.
+	SDL_Renderer * view = nullptr;
+	init_render (&view);
+
 
 	SDL_Rect box;
 	box.w = 30;
@@ -28,7 +39,8 @@ void f () {
 	float x_vel = 0;
 	float gravity = 9.81;
 	float time_delta = 0.1;
-	bool dragging = false;
+	bool is_dragging = false;
+	bool is_running = true;
 
 	int mouse_off_x = 0;
 	int mouse_off_y = 0;
@@ -36,11 +48,11 @@ void f () {
 	int prev_x = box.x;
 	int prev_y = box.y;
 
-	while (running) {
+	while (is_running) {
 		SDL_Event ev;
 		while (SDL_PollEvent(&ev)) {
 			if (SDL_QUIT == ev.type) {
-				running = false;
+				is_running = false;
 				break;
 			} else if (ev.type == SDL_MOUSEBUTTONDOWN) {
 				int x_mouse_pos = ev.button.x;
@@ -49,7 +61,7 @@ void f () {
 				if (x_mouse_pos >= box.x && x_mouse_pos <= box.x + box.w &&
 					y_mouse_pos >= box.y && y_mouse_pos <= box.y + box.h) {
 
-					dragging = true;
+					is_dragging = true;
 					x_vel = y_vel = 0;
 
 					mouse_off_x = x_mouse_pos - box.x;
@@ -59,14 +71,14 @@ void f () {
 				}	
 
 			} else if (ev.type == SDL_MOUSEBUTTONUP) {
-				if (dragging) {
+				if (is_dragging) {
 					// Horizontal velocity
 					x_vel = (box.x - prev_x) * 0.6;
 					y_vel = (box.y - prev_y) * 0.6;
-					dragging = false;
+					is_dragging = false;
 				}
 
-			} else if (ev.type == SDL_MOUSEMOTION && dragging) {
+			} else if (ev.type == SDL_MOUSEMOTION && is_dragging) {
 				prev_x = box.x;
 				prev_y = box.y;
 
@@ -76,8 +88,7 @@ void f () {
 
 		}
 
-
-		if (!dragging) {
+		if (!is_dragging) {
 			y_vel += gravity * time_delta;
 			box.y += static_cast<int>(y_vel);
 			box.x += static_cast<int>(x_vel);
@@ -105,14 +116,15 @@ void f () {
 
 		}
 
-        SDL_SetRenderDrawColor( renderer, 0xFF, 0xFF, 0xFF, 0xFF );
-        SDL_RenderClear (renderer);
+        SDL_SetRenderDrawColor (view, 0xFF, 0xFF, 0xFF, 0xFF );
+        SDL_RenderClear (view);
 
-        SDL_SetRenderDrawColor( renderer, 0xFF, 0x00, 0x00, 0xFF );
-        SDL_RenderFillRect( renderer, &box );
+        SDL_SetRenderDrawColor (view, 0xFF, 0x00, 0x00, 0xFF );
+        SDL_RenderFillRect(view, &box );
 
-        SDL_RenderPresent(renderer);
-		SDL_Delay(50);
+        SDL_RenderPresent (view);
+		SDL_Delay(25);
+
     }
 
 	return ;
