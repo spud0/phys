@@ -26,7 +26,7 @@ void init_render (SDL_Renderer** renderer) {
 	return;
 }
 
-void handle_mouse_down ( 
+bool handle_mouse_down ( 
 				 int x_mouse, int y_mouse, 
 				 bool & is_dragging, 
 				 std::pair<int, int>& offsets,
@@ -45,17 +45,16 @@ void handle_mouse_down (
 			offsets.second = y_mouse - box.first.y;
 			previous.first = box.first.x;
 			previous.second = box.first.y;
-			return;
+			return true;
 		}
 
-	return ;
+	return false;
 }
 
 void handle_mouse_up ( 
 				 int x_mouse, int y_mouse, 
 				 bool & is_dragging, 
-				 std::pair<int, int> offsets,
-				 std::pair<int, int> previous, 
+				 std::pair<int, int>& previous, 
 				 std::pair<SDL_Rect, std::pair<float, float>> & box
 				) {
 	
@@ -71,8 +70,8 @@ void handle_mouse_up (
 void handle_mouse_motion ( 
 		 const SDL_Event& ev, 
 		 bool & is_dragging, 
-		 std::pair<int, int> offsets,
-		 std::pair<int, int> previous, 
+		 std::pair<int, int>& offsets,
+		 std::pair<int, int>& previous, 
 		 std::pair<SDL_Rect, std::pair<float, float>> & box
 		) {
 
@@ -106,7 +105,7 @@ void step_simulation (
 			box.second.first *= 0.9;
 		}
 
-		if ( box.first.y < 0) {
+		if (box.first.y < 0) {
 			box.first.y = 0;
 		 	box.second.second = -1 * box.second.second * 0.3;
 		}
@@ -127,74 +126,6 @@ void step_simulation (
 }
 
 
-void f () {
-
-		// up next	
-	while (is_running) {
-		SDL_Event ev;
-		while (SDL_PollEvent(&ev)) {
-			if (SDL_QUIT == ev.type) {
-				is_running = false;
-				break;
-			} else if (ev.type == SDL_MOUSEBUTTONDOWN) {
-				int x_mouse = ev.button.x;
-				int y_mouse = ev.button.y;
-				
-				 is_mouse_down (box.first, x_mouse, y_mouse, is_dragging, offsets, previous);
-
-			} else if (ev.type == SDL_MOUSEBUTTONUP) {
-
-				is_mouse_up
-				if (is_dragging) {
-					// Horizontal velocity
-					x_vel = (box.x - prev_x) * 0.6;
-					y_vel = (box.y - prev_y) * 0.6;
-					is_dragging = false;
-				}
-
-			} else if (ev.type == SDL_MOUSEMOTION && is_dragging) {
-				prev_x = box.x;
-				prev_y = box.y;
-
-				box.x = ev.motion.x - mouse_off_x;	
-				box.y = ev.motion.y - mouse_off_y;	
-			}
-
-		}
-
-		if (!is_dragging) {
-			y_vel += gravity * time_delta;
-			box.y += static_cast<int>(y_vel);
-			box.x += static_cast<int>(x_vel);
-
-			if (box.y + box.h > 480) {
-				box.y = 480 - box.h;
-				y_vel = -1 * y_vel * 0.3;
-				x_vel *= 0.9;
-			}
-
-			if (box.y < 0) {
-				box.y = 0;
-				y_vel = -1 * y_vel * 0.3;
-			}
-
-			if (box.x + box.w > 640) {
-				box.x = 640 - box.w;
-				x_vel = -1 * x_vel *0.3;	
-			}
-
-			if (box.x < 0) {
-				box.x = 0;
-				x_vel = -1 * x_vel * 0.3;	
-			}
-
-		}
-
-            }
-
-	return ;
-}
-
 // The Physics Engine.
 int main (void) {
 
@@ -207,7 +138,7 @@ int main (void) {
 	std::vector <std::pair <SDL_Rect, std::pair <float, float>>> boxes;
 	boxes.push_back(std::make_pair (box, std::make_pair(0, 0)));
 
-	for (int i = 0; i < 10; i++) {
+	for (int i = 0; i < 4; i++) {
 		boxes.push_back ({
 			SDL_Rect {
 				.x = 30 + i * 5,
@@ -225,6 +156,8 @@ int main (void) {
 	std::pair<int, int> offsets {0, 0};
 	std::pair<int, int> previous {0, 0};
 
+	std::pair<SDL_Rect, std::pair<float, float>> * current = nullptr;
+
 	// The main "game" loop.
 	while (is_running) {
 		SDL_Event ev;
@@ -234,30 +167,45 @@ int main (void) {
 					is_running = false; break;
 		
 				case SDL_MOUSEBUTTONUP:
+					if (current) {
+						handle_mouse_up (ev.button.x, ev.button.y, is_dragging, previous, *current);
+						current = nullptr;
+					}
+					break;
 				case SDL_MOUSEBUTTONDOWN:
+
+					for (auto& box: boxes) {
+						if ( handle_mouse_down(ev.button.x, ev.button.y, is_dragging, offsets, previous, box) ){
+							current = &box; break;	
+						}	
+					}									
+					break;
 				case SDL_MOUSEMOTION:
+					if (current) handle_mouse_motion (ev, is_dragging, offsets, previous, *current);
+					break;
 			}
 
 		}
 
 		// Update each box and render it. 
-		for (auto box: boxes)  {
+		for (auto& box: boxes) {
 			step_simulation (box, is_dragging);
-		
-			SDL_SetRenderDrawColor (view, 0xFF, 0xFF, 0xFF, 0xFF );
-			SDL_RenderClear (view);
-
-			SDL_SetRenderDrawColor (view, 0xFF, 0x00, 0x00, 0xFF );
-			SDL_RenderFillRect(view, &box );
-
-			SDL_RenderPresent (view);
-			SDL_Delay(25);
-
 		}
-	
+
+		
+		SDL_SetRenderDrawColor (view, 0xFF, 0xFF, 0xFF, 0xFF );
+		SDL_RenderClear (view);
+		SDL_SetRenderDrawColor (view, 0xFF, 0x00, 0x00, 0xFF );
+
+		for (const auto& box: boxes) {
+			SDL_RenderFillRect(view, &box.first);
+		}
+			
+		SDL_RenderPresent (view);
+		SDL_Delay(25);
 
 	}
-		
-
+	
 	return 0;
+
 }
