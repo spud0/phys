@@ -2,6 +2,7 @@
 #include <array>
 #include <iostream>
 #include <limits>
+#include <SDL2/SDL.h>
 #include <type_traits> // For the near future.
 
 namespace math {
@@ -16,15 +17,20 @@ namespace math {
 			return (x * x) + (y * y); 
 		}
 
+		# if 0
 		point operator + (point const& pt) {
 			return point {pt.x + this.x, pt.y + this.y};
 		}
+
+		# endif
 
 	};
 
 	struct box {
 		point bottom_left {inf, inf};
 		point top_right {-inf, -inf};
+		float velx;
+		float vely;
 
 		point middle () {
 			return point { 
@@ -54,6 +60,17 @@ namespace math {
 			top_right.x  = std::max (top_right.x, bx.top_right.x);
 			top_right.y  = std::max (top_right.y, bx.top_right.y);
 			return *this;
+		}
+
+		SDL_Rect to_sdl () {
+
+			return SDL_Rect { 
+				.x = static_cast<int> (top_right.x - bottom_left.x / 2),
+				.y = static_cast<int> (top_right.y - bottom_left.y / 2),
+				.w = static_cast<int> (top_right.x - bottom_left.x),
+				.h = static_cast<int> (top_right.y - bottom_left.y),
+			};
+			
 		}
 	
 	};
